@@ -15,34 +15,56 @@ class Game:
         
         self.display_width = display_width
         self.display_height = display_height
+        self.intro = True
 
         #Colors
-        global black, white, red, blue, grey, green, hotpink, lightgreen, light_grey 
-        black = (0,0,0)
-        white = (255,255,255)
-        red = (255,0,0)
-        blue = (20, 20, 255)
-        grey = (55, 55, 55)
-        green = (0,255,0)
-        hotpink = (255,96,96) 
-        lightgreen = (96,255,96)
-        light_grey = (145,145,145)
-
+        self.black = (0,0,0)
+        self.white = (255,255,255)
+        self.red = (255,0,0)
+        self.blue = (20, 20, 255)
+        self.grey = (55, 55, 55)
+        self.green = (0,255,0)
+        self.hotpink = (255,96,96) 
+        self.lightgreen = (96,255,96)
+        self.light_grey = (145,145,145)
+        self.guy_x = (display_width*0.45)
         #extra variables
-        pause = False
+        self.pause = False
         cwd = os.path.dirname(sys.argv[0])
-        global guy_width
-        guy_width = 73
+        self.guy_width = 73
         self.gameDisplay = pygame.display.set_mode((self.display_width, self.display_height))
         pygame.display.set_caption('BitRacer')
         self.clock = pygame.time.Clock()
         
+        
 
         #importing images
-        global bgImg, guyImg, trashImg
-        bgImg = pygame.image.load(cwd+'\\road.png')
-        guyImg = pygame.image.load(cwd+'\\guy.png')
-        trashImg = pygame.image.load(cwd+'\\trash.png')
+        self.bgImg = pygame.image.load(cwd+'\\road.png')
+        self.guyImg = pygame.image.load(cwd+'\\guy.png')
+        self.trashImg = pygame.image.load(cwd+'\\trash.png')
+        self.init()
+        
+
+    def init(self,init = True):
+        if init == True:   
+            self.guy_x = (self.display_width * 0.45)
+            self.trash_speed = 7
+            self.count = 0
+        self.guy_y = (self.display_height * 0.8)
+
+        
+
+        self.trash_start_x = random.randrange(0, self.display_width)
+        self.trash_start_y = -500
+        self.gameDisplay.blit(self.bgImg,(0,0))
+        #block_width = 100
+        #block_height = 100
+
+        self.gameExit = False
+        
+    def start_game(self):
+        self.init()
+        self.game_loop()     
 
     def trash_dodged(self, count):
         font = pygame.font.SysFont(None, 25)
@@ -54,7 +76,6 @@ class Game:
     
 
     def guy(self,x,y):
-
         self.gameDisplay.blit(guyImg,(x,y))
 
     def text_objects(self, text, font):
@@ -75,13 +96,13 @@ class Game:
         
         
 
-    def true():
-        while true:
+    def crash(self):
+        while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit
                     quit()
-            self.gameDisplay.fill(light_grey)
+            self.gameDisplay.fill(self.light_grey)
             largeText = pygame.font.Font('freesansbold.ttf',100)
             TextSurf, TextRect = self.text_objects("You Crashed", largeText)
             TextRect.center = ((self.display_width/2), (self.display_height/2))
@@ -113,7 +134,9 @@ class Game:
         if x+w > mouse[0] > x and y+h > mouse[1] > y:
             pygame.draw.rect(self.gameDisplay, color,(ax,ay,aw,ah))
             if click[0] == 1 and action != None:
+                self.intro = False
                 action()
+                
 
                 
         else:
@@ -138,7 +161,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit
                     quit()
-            self.gameDisplay.fill(light_grey)
+            self.gameDisplay.fill(self.light_grey)
             largeText = pygame.font.Font('freesansbold.ttf',100)
             TextSurf, TextRect = self.text_objects("Bitracer", largeText)
             TextRect.center = ((self.display_width/2), (self.display_height/2))
@@ -159,21 +182,21 @@ class Game:
 
     def game_intro(self):
         
-        intro = True
+        #intro = True
 
-        while intro:
+        while self.intro:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit
                     quit()
-            self.gameDisplay.fill(light_grey)
+            self.gameDisplay.fill(self.light_rey)
             largeText = pygame.font.Font('freesansbold.ttf',100)
             TextSurf, TextRect = self.text_objects("Bitracer", largeText)
             TextRect.center = ((self.display_width/2),(self.display_height/2))
             self.gameDisplay.blit(TextSurf, TextRect)
             
             #adds buttons to intro screen
-            self.button("START",150,450,100,50,lightgreen,self.game_loop)
+            self.button("START",150,450,100,50,lightgreen,self.start_game)
             self.button("Exit",550,450,100,50,hotpink, self.quit_game)
             self.button("Load Game",350,450,125,50,lightgreen,self.load)
             #finds mouse position
@@ -186,34 +209,15 @@ class Game:
 
 
 
-    def game_loop(self):
-        
-        global pause
-
-        global x
-        x = (self.display_width * 0.45)
-        y = (self.display_height * 0.8)
-
-        x_change = 0
-
-        trash_start_x = random.randrange(0, self.display_width)
-        trash_start_y = -500
-        global trash_speed
-        trash_speed = 7
-        #block_width = 100
-        #block_height = 100
-
-        gameExit = False
-        global count
-        count = 0
-
-        while not gameExit:
-
+    def game_loop(self, init=True):
+        while not self.gameExit:
+            x_change = 0
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    #print(str(event.type))
                     pygame.quit()
                     quit()
-
+                
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
                         x_change = -5
@@ -227,28 +231,23 @@ class Game:
                     if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                         x_change = 0
 
-            x += x_change
-
-            self.gameDisplay.blit(bgImg,(0,0))
-            self.trash(trash_start_x, trash_start_y)
-            trash_start_y += trash_speed
+            self.guy_x += x_change
+            #print(str(self.x))
+            self.trash(self.trash_start_x, self.trash_start_y)
+            self.trash_start_y += trash_speed
             trash_speed = trash_speed + 0.001
-            
-
-            
-
-            self.guy(x,y)
+            self.guy(self.guy_x,self.guy_y)
             self.trash_dodged(count)
-            if x > self.display_width - guy_width or x < 0:
-                true()
-            if trash_start_y > self.display_height:
-                trash_start_y = 0 - 62
-                trash_start_x = random.randrange(62, self.display_width - 62)
+            if self.guy_x > self.display_width - guy_width or self.guy_x < 0:
+                self.crash()
+            if self.trash_start_y > self.display_height:
+                self.trash_start_y = 0 - 62
+                self.trash_start_x = random.randrange(62, self.display_width - 62)
                 count += 1
             
-            if y < trash_start_y + 62:
-                if x > trash_start_x and x < trash_start_x + 62 or x + guy_width > trash_start_x and x + guy_width < trash_start_x + 62:
-                    true()
+            if y < self.trash_start_y + 62:
+                if self.guy_x > self.trash_start_x and self.guy_x < self.trash_start_x + 62 or self.guy_x + guy_width > self.trash_start_x and self.guy_x + guy_width < self.trash_start_x + 62:
+                    self.crash()
             
             pygame.display.update()
             self.clock.tick(60)
@@ -259,14 +258,20 @@ class Game:
         cwd = os.path.dirname(sys.argv[0])
 
         with open(cwd+"\\text.txt", "w") as f:
-            print(count,"\n", x,"\n",trash_speed,"\n",file = f)    
+            print(str(count)+"\n"+str(self.guy_x)+"\n"+str(trash_speed)+"\n",file = f)    
 
     def load(self):
         cwd = os.path.dirname(sys.argv[0])
 
         with open(cwd+"\\text.txt", "r") as f:
-            print(map(float, f))
-                
+            contents = f.readlines()
+            contents =[l.strip() for l in contents]
+            count = int(contents[0], base = 10)
+            self.guy_x = float(contents[1])
+            self.trash_speed = float(contents[2])
+            #self.game_loop(False)
+            print(contents)
+            #intro = False    
 
         
 
